@@ -4,5 +4,5 @@ modes to run the file. One to collect meta data, one to add those to db. Just se
 For Linux/Debian users:
 -----------------------
 
-To run the command ./nmdc.py first add '#!/usr/bin/python' ( without apostrophe )
+To run the command ./nmdc.py first add '#!/usr/bin/python' (without apostrophe)
 at the starting of the script file
