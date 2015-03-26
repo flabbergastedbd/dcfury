@@ -5,4 +5,4 @@ For Linux/Debian users :
 ------------------------
 
 In order to run the command ./nmdc.py first add '#!/usr/bin/python' (without apostrophe)
-at the starting of the script file
+at the starting of the script file.
