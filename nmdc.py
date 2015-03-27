@@ -561,9 +561,9 @@ class NMDCClient(object):
 db_settings = {}
 db_settings["DATABASE_IP"] = "127.0.0.1"
 db_settings["DATABASE_PORT"] = "5432"
-db_settings["DATABASE_NAME"] = "dcrawl"
-db_settings["DATABASE_USER"] = "crawl_bot"
-db_settings["DATABASE_PASS"] = "crawl_bot"
+db_settings["DATABASE_NAME"] = "dcfury"
+db_settings["DATABASE_USER"] = "root"
+db_settings["DATABASE_PASS"] = "shadow"
 # hub = NMDCClient("192.168.1.3", 4112, db_settings)
 # hub = NMDCClient("adc.mimic.cz", 1511, db_settings)
 # hub = NMDCClient("docohub.com", 1511, db_settings)

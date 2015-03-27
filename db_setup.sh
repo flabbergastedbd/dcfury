@@ -19,9 +19,9 @@ fi
 
 Action=$1
 
-db_name="dcrawl"
-db_user="crawl_bot"
-db_pass="crawl_bot"
+db_name="dcfury"
+db_user="root"
+db_pass="shadow"
 
 if [ "$Action" = "init" ]
 then
