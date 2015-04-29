@@ -174,7 +174,8 @@ class NMDCClient(object):
             print(e)
             sys.exit(1)
 
-    def connect_hub(self):
+    def connect_hub(self, listen_mode=False):
+        self.listen_mode = listen_mode
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.listen_s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         # self.s.setblocking(0)  # Necessary
@@ -199,8 +200,13 @@ class NMDCClient(object):
         self.s.send("$Version 1,0091|")
         self.s.send("$MyINFO $ALL " + self.username + " <StrgDC++ V:2.41,M:P,H:9/3/0,S:5>$ $0.011$$60028339050$|")
         # Done handshake, now ask for nick list and move on
-        self.s.send("$GetNickList|")
-        self._wait_and_process("NickList")
+        if self.listen_mode is False:
+            self.s.send("$GetNickList|")
+            self._wait_and_process("NickList")
+        else:
+            print("[*] Going into listen mode")
+            while(True):
+                self._wait_and_process("|")
 
     def _wait_and_process(self, substring):
         data = ''
@@ -251,18 +257,27 @@ class NMDCClient(object):
                 own_nick, addr, param, nick = re.findall("\$ConnectToMe ([^\s]*) ([0-9\.\:]*)(NS|S|RS)?\s?(.*)?", command)[0]
                 print("[*] Received Connect from %s" % (nick))
                 print(command)
-                if param == "S":
-                    self.get_file_list(addr, nick, tls=True)
-                elif param == "NS":
-                    self.get_file_list(addr, nick, tls=True, nat=True)
-                elif param == "N":
-                    self.get_file_list(addr, nick, tls=False, nat=True)
-                else:
-                    self.get_file_list(addr, nick, tls=False)
+                if self.listen_mode == False:
+                    if param == "S":
+                        self.get_file_list(addr, nick, tls=True)
+                    elif param == "NS":
+                        self.get_file_list(addr, nick, tls=True, nat=True)
+                    elif param == "N":
+                        self.get_file_list(addr, nick, tls=False, nat=True)
+                    else:
+                        self.get_file_list(addr, nick, tls=False)
             elif command.startswith("$RevConnectToMe"):
                 other_nick, own_nick = re.findall("\$RevConnectToMe ([^\s]*) (.*)", command)[0]
-                self.listen_file_list(other_nick)
                 print("[*] RevConnect from %s" % (other_nick))
+                if self.listen_mode == False:
+                    self.listen_file_list(other_nick)
+            elif command.startswith("$Search"):
+                conn_details, search_string = re.findall("\$Search ([^\s]*) (.*)", command)[0]
+                search_details = search_string.split('?')
+                if search_details[4].startswith("TTH"):
+                    print("[*] TTH Search request from %s => %s" % (conn_details, search_details[4]))
+                else:
+                    print("[*] Search request from %s => %s" %(conn_details, search_details[4].replace('$', ' ')))
 
     def listen_file_list(self, nick, tls=False):
         orig_s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -540,6 +555,17 @@ class NMDCClient(object):
                 else:
                     done_file = open(f+'.done', 'w')
                     done_file.close()
+    def get_stats(self):
+        user = self.session.query(User).filter_by(nick = 'premier').one()
+        user2 = self.session.query(User).filter_by(nick = 'Premier').one()
+        print(user.info)
+        print(user2.info)
+        for fil in user.files:
+            if 'mp4' in fil.name:
+                print(fil.name)
+        #for fil in user2.files:
+        #    print(fil.name)
+        print(len(user.files))
 
     def _shell(self):
         try:
@@ -565,12 +591,14 @@ db_settings["DATABASE_PASS"] = "crawl_bot"
 # hub = NMDCClient("192.168.1.3", 4112, db_settings)
 # hub = NMDCClient("adc.mimic.cz", 1511, db_settings)
 # hub = NMDCClient("docohub.com", 1511, db_settings)
-hub = NMDCClient("10.8.11.41", 4112, db_settings)
-# hub = NMDCClient("10.8.20.21", 4112, db_settings)
+# hub = NMDCClient("10.8.11.41", 4112, db_settings)
+hub = NMDCClient("10.8.20.21", 4112, db_settings)
 # hub._do_shit()
 if 'collect' in sys.argv:
     hub.connect_hub()
     hub.get_file_lists()
 elif 'analyse' in sys.argv:
     hub.add_files_to_db()
+elif 'listen' in sys.argv:
+    hub.connect_hub(listen_mode=True)
 # hub._shell()
